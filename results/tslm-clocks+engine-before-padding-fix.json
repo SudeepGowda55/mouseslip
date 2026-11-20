@@ -1,0 +1,51 @@
+{
+  "model": "OpenTSLM-SP on google/gemma-3-270m + LoRA",
+  "mode": "clocks+engine",
+  "split": "test",
+  "steps_trained": 7000,
+  "validation_auc": 0.7254002271824342,
+  "device": "mps",
+  "answers_after": "the model's own description of the series",
+  "n": 6167,
+  "base_rate": 0.23074428409275174,
+  "auc": 0.622647433337402,
+  "average_precision": 0.34456811714223956,
+  "auc_ci95": [
+    0.6041851681321421,
+    0.6386278565956461
+  ],
+  "top_decile_precision": 0.4318181818181818,
+  "top_decile_lift": 1.8714144253497733,
+  "threshold": 0.4223827123641968,
+  "accuracy": 0.7686071023187936,
+  "majority_class_accuracy": 0.7692557159072483,
+  "by_speed": {
+    "bullet": {
+      "n": 2319,
+      "base_rate": 0.3061664510564899,
+      "auc": 0.6352510963856476,
+      "average_precision": 0.41873922361842797
+    },
+    "blitz": {
+      "n": 1960,
+      "base_rate": 0.18928571428571428,
+      "auc": 0.5617350755446389,
+      "average_precision": 0.21654380460790232
+    },
+    "rapid": {
+      "n": 1624,
+      "base_rate": 0.18041871921182265,
+      "auc": 0.5478277258239462,
+      "average_precision": 0.21010469573248283
+    },
+    "classical": {
+      "n": 264,
+      "base_rate": 0.1856060606060606,
+      "auc": 0.5614617940199336,
+      "average_precision": 0.2781674597204382
+    }
+  },
+  "description_exact_match": 0.1191827468785471,
+  "auc_after_reference_description": 0.748452903930726,
+  "call_threshold_top_decile": 0.31710299849510193
+}

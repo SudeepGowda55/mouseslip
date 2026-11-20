@@ -203,6 +203,10 @@ def load_model(device: str, checkpoint: dict | None = None, *, lora: bool = Fals
 
     model = OpenTSLMSP(llm_id=checkpoint["llm_id"] if checkpoint else llm_id, device=device)
     model.llm.float()  # bfloat16 is slow or broken on MPS
+    # OpenTSLM keeps the first n positions of each padded text. Gemma's tokenizer pads on the left, which
+    # silently replaced every series label and the question with padding: the model saw the first sentence only.
+    model.tokenizer.padding_side = "right"
+    assert model.tokenizer(["a", "a b c d"], padding=True).input_ids[0][-1] == model.tokenizer.pad_token_id
     if lora or (checkpoint and checkpoint.get("lora_enabled")):
         model.enable_lora()
     if checkpoint:
