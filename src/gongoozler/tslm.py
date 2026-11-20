@@ -1,7 +1,8 @@
 """Fine-tune OpenTSLM-SP (frozen Gemma, trained time-series encoder and projector) to call chess blunders.
 
 The model never sees the board. In mode "clocks+engine" it reads both clocks and the engine's evaluation
-bar; in mode "clocks" (the ablation) only the clocks.
+bar; in mode "clocks" (the ablation) only the clocks. It first writes what it sees in the series and
+then answers, so the answer can rest on its own description.
 
     uv run python -m gongoozler.tslm train
     uv run python -m gongoozler.tslm eval
@@ -27,6 +28,9 @@ LLM_ID = "google/gemma-3-270m"  # gated: needs a Hugging Face token with the Gem
 MODES = ("clocks+engine", "clocks")
 PLIES = 40
 ANSWERS = (" no", " yes")  # indexed by label
+CUE = " Answer:"  # ends the description; the answer is the next token
+DESCRIPTION_TOKENS = 60  # more than the longest description needs
+DESCRIPTION_WEIGHT = 3.0  # the description can be learned exactly, the answer only in probability
 VALIDATION_WINDOWS = 1000
 
 
@@ -74,18 +78,20 @@ def sample(window: Window, mode: str = MODES[0]) -> dict:
     The text is terse because every prompt token is paid for in each step through the frozen LLM.
     The series are scaled to order one because the encoder adds unit-variance position embeddings to them.
     A clock is given as a share of the expected game time, not of the base: a berserked player starts
-    at half the base and a "0+1" game has no base at all.
+    at half the base and a "0+1" game has no base at all. Each series is introduced with its latest value
+    in words, the way OpenTSLM's own prompts state a series' mean and spread.
     """
     mover, opponent, own, other, spent = _mover_view(window)
     seconds = game_seconds(window.time_control)
     series = {
-        f"{mover} clock:": _left_pad(own / seconds),
-        f"{opponent} clock:": _left_pad(other / seconds),
+        f"{mover} clock, {own[-1] / seconds:.0%} of the game time left:": _left_pad(own / seconds),
+        f"{opponent} clock, {other[-1] / seconds:.0%} left:": _left_pad(other / seconds),
         f"{mover} log seconds:": _left_pad(np.log10(1 + own)),
         "Time per ply:": _left_pad(np.clip(spent / (seconds / 40), 0, 10), 0),  # in average-move units
     }
     if mode == "clocks+engine":
-        series[f"Winning chances for {mover}:"] = _left_pad(_chances(window))
+        chances = _chances(window)
+        series[f"Winning chances for {mover}, now {chances[-1]:+.2f}:"] = _left_pad(chances)
     shown = "Chess clocks and evaluation bar" if mode == "clocks+engine" else "Chess clocks"
     return {
         "pre_prompt": (
@@ -94,25 +100,25 @@ def sample(window: Window, mode: str = MODES[0]) -> dict:
         ),
         "time_series_text": list(series),
         "time_series": list(series.values()),
-        "post_prompt": f"Will {mover} blunder within three moves? Answer:",
+        "post_prompt": f"Will {mover} blunder within three moves? Describe the series, then answer.",
     }
 
 
 def reason(window: Window, mode: str = "clocks") -> str:
     """Describe the mover's situation in plain words, from the model's own inputs only, never the outcome."""
-    mover, _, own, other, spent = _mover_view(window)
+    mover, opponent, own, other, spent = _mover_view(window)
     seconds = game_seconds(window.time_control)
     share, lead = own[-1] / seconds, (own[-1] - other[-1]) / seconds
     pace = spent[-2::-2][:3] / (seconds / 40)  # the mover's last three moves, latest first
     left = "is almost out of time" if share < 0.1 else "is low on time" if share < 0.3 else "has enough time"
     gap = "is behind" if lead < -0.1 else "is ahead" if lead > 0.1 else "is level"
     if pace.size and pace[0] > 2:
-        tempo = "just took a long think"
+        tempo = "after a long think"
     elif pace.size and pace.mean() < 0.34:
-        tempo = "is moving fast"
+        tempo = "moving fast"
     else:
-        tempo = "is moving at a steady pace"
-    text = f"{mover} {left}, {gap} on the clock, and {tempo}."
+        tempo = "at a steady pace"
+    text = f"{mover} {left}, {gap} on the clock, {tempo}."
     if mode == "clocks+engine":
         chances = _chances(window)
         now, swing = chances[-1], float(np.ptp(chances[-10:]))
@@ -120,14 +126,20 @@ def reason(window: Window, mode: str = "clocks") -> str:
             "is winning" if now > 0.6 else "is better" if now > 0.2 else "is losing" if now < -0.6
             else "is worse" if now < -0.2 else "is about level"
         )  # fmt: skip
-        mood = "has swung wildly" if swing > 0.6 else "has been shifting" if swing > 0.25 else "has been steady"
-        text += f" On the board {mover} {standing}, and the evaluation {mood}."
+        mood = "swinging wildly" if swing > 0.6 else "shifting" if swing > 0.25 else "steady"
+        # Each ply changed the mover's chances; the last ply was the opponent's, the one before it the mover's.
+        change = np.diff(chances)
+        own_blunders, their_blunders = int((-change[-2::-2] >= 0.3).sum()), int((change[-1::-2] >= 0.3).sum())
+        text += (
+            f" Board: {mover} {standing}, evaluation {mood}."
+            f" Blunders: {mover} {own_blunders}, {opponent} {their_blunders}."
+        )
     return text
 
 
 def target(window: Window, mode: str = "clocks") -> str:
-    """Return the text the model learns to write: the answer first, then the reason."""
-    return f"{ANSWERS[window.label]}. {reason(window, mode)}"
+    """Return the text the model learns to write: what the series show, then the answer."""
+    return f" {reason(window, mode)}{CUE}{ANSWERS[window.label]}"
 
 
 def subset(windows: list[Window], limit: int | None, seed: int = 0) -> list[Window]:
@@ -200,79 +212,101 @@ def load_model(device: str, checkpoint: dict | None = None, *, lora: bool = Fals
     # No special tokens: Gemma's tokenizer would put <bos> first, and the first token must be the answer.
     model.answer_ids = [model.tokenizer(answer, add_special_tokens=False).input_ids[0] for answer in ANSWERS]
     assert model.answer_ids[0] != model.answer_ids[1], "yes and no must differ at the first answer token"
+    in_context = model.tokenizer(f"x{CUE}{ANSWERS[1]}", add_special_tokens=False).input_ids
+    assert in_context[-1] == model.answer_ids[1], "after the cue the answer must still be one token"
     return model
 
 
-def _prompts(model, windows: list[Window], mode: str) -> tuple[torch.Tensor, torch.Tensor]:
-    """Embed the prompts and move OpenTSLM's right padding to the left.
+def _rows(model, windows: list[Window], mode: str, texts: list[str] | None = None):
+    """Embed each window's prompt, followed by its text if given, padded on the left.
 
-    Every prompt then ends at the last position, so the answer follows its own prompt instead of padding,
-    in training exactly as in single-window scoring and generation.
+    Every row then ends at the last position, in training exactly as when the model writes on its own.
+
+    Returns:
+        The embeddings, the attention mask, and the token ids of the appended texts aligned to the right
+        (-100 where a row has none).
     """
     from opentslm.time_series_datasets.util import (  # noqa: PLC0415
         extend_time_series_to_match_patch_size_and_aggregate as collate,
     )
 
     embeds, mask = model.pad_and_apply_batch(collate([sample(w, mode) for w in windows]))
-    shifts = (mask.size(1) - mask.sum(1)).tolist()
-    return (
-        torch.stack([row.roll(shift, 0) for row, shift in zip(embeds, shifts, strict=True)]),
-        torch.stack([row.roll(shift, 0) for row, shift in zip(mask, shifts, strict=True)]),
-    )
+    rows = [embeds[i, :n] for i, n in enumerate(mask.sum(1).tolist())]  # OpenTSLM pads on the right
+    ids = []
+    if texts is not None:
+        ids = [torch.tensor(model.tokenizer(t, add_special_tokens=False).input_ids, device=embeds.device) for t in texts]
+        rows = [torch.cat([row, model.llm.get_input_embeddings()(i).to(row.dtype)]) for row, i in zip(rows, ids, strict=True)]
+    width = max(len(row) for row in rows)
+    padded = embeds.new_zeros(len(rows), width, embeds.size(-1))
+    kept = mask.new_zeros(len(rows), width)
+    labels = torch.full((len(rows), width), -100, dtype=torch.long, device=embeds.device)
+    for k, row in enumerate(rows):
+        padded[k, width - len(row) :], kept[k, width - len(row) :] = row, 1
+        if ids:
+            labels[k, width - len(ids[k]) :] = ids[k]
+    return padded, kept, labels
 
 
 def _hidden(model, embeds: torch.Tensor, mask: torch.Tensor):
     """Run the LLM without its output layer and return it with the hidden states.
 
     Gemma's vocabulary has 262,144 entries, so logits at every position cost four times the rest of a step;
-    the callers apply the output layer only where an answer is read.
+    the callers apply the output layer only where a token is read.
     """
     llm = model.llm.get_base_model() if model.lora_enabled else model.llm
     return llm, llm.model(inputs_embeds=embeds, attention_mask=mask).last_hidden_state
 
 
 def losses(model, windows: list[Window], mode: str) -> tuple[torch.Tensor, torch.Tensor]:
-    """Return the cross-entropy of the yes/no token and the mean cross-entropy of the reason tokens.
+    """Return the cross-entropy of the yes/no token and the mean cross-entropy of the description tokens.
 
     They are kept apart because in a plain mean over the target the yes/no token, the only one that
-    carries the prediction, would be one token in about twenty.
+    carries the prediction, would be one token in about fifty.
     """
-    embeds, mask = _prompts(model, windows, mode)
-    texts = [target(w, mode) + model.tokenizer.eos_token for w in windows]
-    model.tokenizer.padding_side = "right"  # the answer token must sit at position 0 of every row
-    tokens = model.tokenizer(texts, return_tensors="pt", padding=True, add_special_tokens=False)
-    ids, keep = tokens.input_ids.to(model.device), tokens.attention_mask.to(model.device)
-    llm, hidden = _hidden(
-        model, torch.cat([embeds, model.llm.get_input_embeddings()(ids)], 1), torch.cat([mask, keep], 1)
-    )
-    logits = llm.lm_head(hidden[:, embeds.size(1) - 1 : -1])
-    nll = F.cross_entropy(logits.transpose(1, 2).float(), ids, reduction="none")
-    return nll[:, 0].mean(), (nll[:, 1:] * keep[:, 1:]).sum() / keep[:, 1:].sum()
+    embeds, mask, labels = _rows(model, windows, mode, [target(w, mode) + model.tokenizer.eos_token for w in windows])
+    llm, hidden = _hidden(model, embeds, mask)
+    n = int((labels != -100).sum(1).max())
+    labels = labels[:, -n:]
+    logits = llm.lm_head(hidden[:, -n - 1 : -1]).float()  # the predictions for the last n positions
+    nll = F.cross_entropy(logits.transpose(1, 2), labels, reduction="none", ignore_index=-100)
+    described = labels != -100
+    described[:, -2:] = False  # every row ends with the answer and the end token
+    return nll[:, -2].mean(), (nll * described).sum() / described.sum()
 
 
 @torch.no_grad()
-def score(model, windows: list[Window], mode: str, batch_size: int = 16) -> np.ndarray:
-    """Return P(blunder) per window: "yes" against "no" at the first answer position, one forward pass each."""
+def describe(model, windows: list[Window], mode: str) -> list[str]:
+    """Let the model write what it sees in each window; the text stops before the answer cue."""
+    embeds, mask, _ = _rows(model, windows, mode)
+    ids = model.llm.generate(
+        inputs_embeds=embeds,
+        attention_mask=mask,
+        max_new_tokens=DESCRIPTION_TOKENS,
+        do_sample=False,
+        pad_token_id=model.tokenizer.pad_token_id,
+    )
+    return [text.split(CUE.strip())[0].strip() for text in model.tokenizer.batch_decode(ids, skip_special_tokens=True)]
+
+
+@torch.no_grad()
+def score(model, windows: list[Window], mode: str, batch_size: int = 16, *, own_words: bool = True):
+    """Return P(blunder) and the description for each window.
+
+    P is "yes" against "no" right after the description. With `own_words` the model writes the description
+    itself, as it must on a live game. Without, the answer is read after the reference description: one
+    forward pass, used during training to pick the checkpoint, and reported apart from the real score.
+    """
     model.eval()
-    scores = []
+    scores, descriptions = [], []
     for start in range(0, len(windows), batch_size):
-        embeds, mask = _prompts(model, windows[start : start + batch_size], mode)
+        chunk = windows[start : start + batch_size]
+        texts = describe(model, chunk, mode) if own_words else [reason(w, mode) for w in chunk]
+        embeds, mask, _ = _rows(model, chunk, mode, [f" {text}{CUE}" for text in texts])
         llm, hidden = _hidden(model, embeds, mask)
         logits = llm.lm_head(hidden[:, -1])[:, model.answer_ids]
         scores.append(logits.float().softmax(-1)[:, 1].cpu().numpy())
-    return np.concatenate(scores)
-
-
-@torch.no_grad()
-def explain(model, window: Window, mode: str) -> str:
-    """Generate the reason sentence for a window."""
-    model.eval()
-    embeds, mask = _prompts(model, [window], mode)
-    ids = model.llm.generate(
-        inputs_embeds=embeds, attention_mask=mask, max_new_tokens=40, do_sample=False, pad_token_id=model.tokenizer.pad_token_id
-    )
-    text = model.tokenizer.decode(ids[0], skip_special_tokens=True).strip()
-    return text.partition(". ")[2] or text  # drop the leading "yes." or "no."
+        descriptions += texts
+    return np.concatenate(scores), descriptions
 
 
 class TslmPredictor:
@@ -284,11 +318,20 @@ class TslmPredictor:
         self.name = f"OpenTSLM-SP on {checkpoint['llm_id'].split('/')[1]} ({self.mode}, {checkpoint['step']} steps)"
         self.model = load_model(device or default_device(), checkpoint)
 
+        self._last: tuple[Window, float, str] | None = None
+
+    def _read(self, window: Window) -> tuple[Window, float, str]:
+        # The description and the probability come from one pass, and the watcher asks for them one after the other.
+        if self._last is None or self._last[0] is not window:
+            scores, descriptions = score(self.model, [window], self.mode)
+            self._last = (window, float(scores[0]), descriptions[0])
+        return self._last
+
     def p_blunder(self, window: Window) -> float:
-        return float(score(self.model, [window], self.mode)[0])
+        return self._read(window)[1]
 
     def explain(self, window: Window) -> str:
-        return explain(self.model, window, self.mode)
+        return self._read(window)[2]
 
 
 def train(args: argparse.Namespace) -> None:
@@ -334,7 +377,7 @@ def train(args: argparse.Namespace) -> None:
             model.train()
             batch = [windows[i] for i in batch_indices(len(windows), args.batch_size, step, args.seed)]
             answer_loss, reason_loss = losses(model, batch, args.mode)
-            (answer_loss + reason_loss).backward()
+            (answer_loss + DESCRIPTION_WEIGHT * reason_loss).backward()
             torch.nn.utils.clip_grad_norm_(trainable, GRAD_CLIP_NORM)
             optimizer.step()
             scheduler.step()
@@ -354,7 +397,7 @@ def train(args: argparse.Namespace) -> None:
                 recent, started = [], time.time()
 
             if step % args.every == 0 or step == total:
-                scores = score(model, validation, args.mode)
+                scores, _ = score(model, validation, args.mode, own_words=False)
                 auc = float(roc_auc_score(validation_labels, scores))
                 weights = {
                     "encoder_state": model.encoder.state_dict(),
@@ -373,7 +416,11 @@ def train(args: argparse.Namespace) -> None:
                     {**weights, "optimizer": optimizer.state_dict(), "scheduler": scheduler.state_dict(), "best_val_auc": best},
                     last,
                 )
-                write(val_auc=round(auc, 4), best_val_auc=round(best, 4))
+                # How well it reads the series on its own: slow, so on a few windows only.
+                sample_windows = validation[:64]
+                _, written = score(model, sample_windows, args.mode)
+                match = float(np.mean([text == reason(w, args.mode) for text, w in zip(written, sample_windows, strict=True)]))
+                write(val_auc=round(auc, 4), best_val_auc=round(best, 4), val_description_match=round(match, 3))
                 started = time.time()  # keep validation time out of seconds_per_step
 
 
@@ -382,6 +429,9 @@ def evaluate(args: argparse.Namespace) -> None:
     mode = checkpoint["mode"]
     model = load_model(args.device, checkpoint)
     windows = subset(load_windows("test"), args.limit)
+    scores, descriptions = score(model, windows, mode)
+    reference_scores, _ = score(model, windows, mode, own_words=False)
+    labels = np.array([w.label for w in windows])
     result = {
         "model": f"OpenTSLM-SP on {checkpoint['llm_id']}" + (" + LoRA" if checkpoint.get("lora_enabled") else ""),
         "mode": mode,
@@ -389,7 +439,12 @@ def evaluate(args: argparse.Namespace) -> None:
         "steps_trained": checkpoint["step"],
         "validation_auc": checkpoint["val_auc"],
         "device": args.device,
-        **metrics(windows, score(model, windows, mode), checkpoint["threshold"]),
+        "answers_after": "the model's own description of the series",
+        **metrics(windows, scores, checkpoint["threshold"]),
+        # How well it reads the series: its description against the one computed from the same numbers.
+        "description_exact_match": float(np.mean([d == reason(w, mode) for d, w in zip(descriptions, windows, strict=True)])),
+        "auc_after_reference_description": float(roc_auc_score(labels, reference_scores)),
+        "call_threshold_top_decile": float(np.quantile(scores, 0.9)),
     }
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f"tslm-{mode}.json").write_text(json.dumps(result, indent=2) + "\n")

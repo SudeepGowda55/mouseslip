@@ -66,19 +66,28 @@ def test_clocks_mode_ignores_the_evaluation():
     assert engine[-1] < -0.9  # White is to move and lost
 
 
-def test_target_is_answer_then_reason():
+def test_target_is_description_then_answer():
     assert tslm.target(low_on_time(1)) == (
-        " yes. White is almost out of time, is behind on the clock, and just took a long think."
+        " White is almost out of time, is behind on the clock, after a long think. Answer: yes"
     )
-    assert tslm.target(low_on_time(0)).startswith(" no. White is almost out of time")
+    assert tslm.target(low_on_time(0)).endswith("after a long think. Answer: no")
     fast = window([300 - ply // 2 for ply in range(24)], label=0)
-    assert tslm.target(fast) == " no. White has enough time, is level on the clock, and is moving fast."
+    assert tslm.target(fast) == " White has enough time, is level on the clock, moving fast. Answer: no"
+
+
+def test_engine_description_counts_the_blunders_already_in_view():
+    game = low_on_time()  # 30 plies, White to move
+    game.evaluation[:] = 0.0
+    game.evaluation[-2:] = -3.0  # White's last move lost the game; Black's reply kept it
+    assert tslm.reason(game, "clocks+engine").endswith("Blunders: White 1, Black 0.")
+    game.evaluation[-1] = 0.0  # ...and Black's reply gave it straight back
+    assert tslm.reason(game, "clocks+engine").endswith("Blunders: White 1, Black 1.")
 
 
 def test_works_on_the_shortest_live_window():
     shortest = make_window([300, 300], "300+0", 1500, 1500)
     assert tslm.sample(shortest)["time_series"][0].shape == (tslm.PLIES,)
-    assert tslm.reason(shortest).endswith("is moving at a steady pace.")
+    assert tslm.reason(shortest).endswith("at a steady pace.")
 
 
 @pytest.mark.parametrize(
