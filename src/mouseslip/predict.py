@@ -8,7 +8,7 @@ import numpy as np
 from mouseslip.data import Window
 
 ROOT = Path(__file__).resolve().parents[2]
-TSLM_CHECKPOINT = ROOT / "checkpoints" / "tslm-clocks.pt"
+TSLM_CHECKPOINT = ROOT / "checkpoints" / "tslm-clocks+engine.pt"  # the headline model: clocks and evaluation bar
 BASELINE_MODEL = ROOT / "models" / "baseline-clocks.pkl"
 
 
