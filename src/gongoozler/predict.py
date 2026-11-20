@@ -13,7 +13,7 @@ BASELINE_MODEL = ROOT / "models" / "baseline-clocks.pkl"
 
 
 class Predictor(Protocol):
-    """Scores a window using the two clocks only: live games have no engine evaluation yet."""
+    """Scores a window: both clocks, plus the engine evaluation for models trained with it."""
 
     name: str
 
@@ -27,7 +27,14 @@ class Predictor(Protocol):
 
 
 def make_window(  # noqa: PLR0913
-    clocks: list[float], time_control: str, white_elo: int, black_elo: int, *, game_id: str = "", window_plies: int = 40
+    clocks: list[float],
+    time_control: str,
+    white_elo: int,
+    black_elo: int,
+    *,
+    evaluations: list[float] | None = None,
+    game_id: str = "",
+    window_plies: int = 40,
 ) -> Window:
     """Build the window a model sees from a game so far.
 
@@ -37,11 +44,13 @@ def make_window(  # noqa: PLR0913
         time_control: "base+increment" in seconds.
         white_elo: White's rating.
         black_elo: Black's rating.
+        evaluations: The engine evaluation in pawns from White's view after each of those plies, a mate
+            as ±10. Without it the window's evaluation is all zeros, which only a clocks-only model may read.
         game_id: The Lichess game id, kept for display.
         window_plies: The most plies a window holds, as in the dataset.
 
     Returns:
-        The window for the player to move next, with no evaluation, prompt, rationale or label.
+        The window for the player to move next, with no prompt, rationale or label.
     """
     ply = len(clocks)
     white, black = np.empty(ply, np.float32), np.empty(ply, np.float32)
@@ -56,7 +65,7 @@ def make_window(  # noqa: PLR0913
     return Window(
         white_clock=white[start:],
         black_clock=black[start:],
-        evaluation=np.zeros(ply - start, np.float32),
+        evaluation=np.clip(np.asarray(evaluations or [0.0] * ply, np.float32), -10, 10)[start:],
         time_control=time_control,
         white_elo=white_elo,
         black_elo=black_elo,
