@@ -167,7 +167,8 @@ def test_scoreboard_arithmetic():
 
 def test_log_accumulates_across_restarts_per_model(tmp_path):
     log = tmp_path / "live-log.jsonl"
-    log.write_text(json.dumps({"model": "some other model", "speed": "blitz", "called": True, "blunder": True}) + "\n")
+    other = {"model": "some other model", "threshold": 0.4, "t": "2026-11-20T10:00:00+00:00"}
+    log.write_text(json.dumps(other | {"speed": "blitz", "called": True, "blunder": True}) + "\n")
     watcher = Watcher(DevHeuristicPredictor(), 0.4, log_path=log)
     assert watcher.board.snapshot()["all"]["resolved"] == 0
     game = replay()
@@ -177,6 +178,7 @@ def test_log_accumulates_across_restarts_per_model(tmp_path):
     assert len(game.resolved_calls) == 1 and len(log.read_text().splitlines()) == 2
     again = Watcher(DevHeuristicPredictor(), 0.4, log_path=log).board.snapshot()
     assert (again["all"]["resolved"], again["rapid"]["hits"], again["rapid"]["precision"]) == (1, 1, 1.0)
+    assert Watcher(DevHeuristicPredictor(), 0.2, log_path=log).board.snapshot()["all"]["resolved"] == 0  # another threshold
 
 
 def test_dev_heuristic_rates_time_trouble_higher():

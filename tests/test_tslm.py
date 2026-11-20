@@ -108,6 +108,7 @@ def test_metrics_and_threshold():
     labels = np.array([w.label for w in windows])
     cut = tslm.best_threshold(labels, perfect)
     result = tslm.metrics(windows, perfect, cut)
+    assert result["auc_ci95"] == [1.0, 1.0]  # a perfect ranking stays perfect under resampling
     assert cut == pytest.approx(0.8) and result["accuracy"] == 1 and result["auc"] == 1 and result["n"] == 20
     assert result["base_rate"] == 0.5 and result["top_decile_precision"] == 1 and result["top_decile_lift"] == 2
     assert set(result["by_speed"]) == {"bullet", "rapid"} and result["by_speed"]["rapid"]["n"] == 10

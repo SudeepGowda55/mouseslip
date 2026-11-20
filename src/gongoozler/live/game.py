@@ -3,6 +3,7 @@
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 import math
+import time
 
 from gongoozler.data import Window
 from gongoozler.predict import make_window
@@ -41,6 +42,7 @@ class Decision:
     p: float
     called: bool
     explain: str = ""
+    t: float = field(default_factory=time.time)  # when it was scored, so a page loaded later can show the hour
     blunder: bool | None = None  # None while open, and for good when void
     void: bool = False
     drop: float | None = None  # the most winning chances lost in one of the three moves
@@ -52,6 +54,7 @@ class Decision:
             "ply": self.ply,
             "side": self.side,
             "p": round(self.p, 4),
+            "t": self.t,
             "explain": self.explain,
             "blunder": self.blunder,
             "void": self.void,

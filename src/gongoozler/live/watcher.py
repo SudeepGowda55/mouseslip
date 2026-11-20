@@ -44,9 +44,11 @@ class Watcher:
         self.tasks: set[asyncio.Task] = set()
         self.skipped = 0  # live positions the model was too slow to score before the next move came
         self.started = time.time()
-        if log_path.exists():  # numbers add up across restarts, but never across models
+        self.counting_since = datetime.now(UTC).isoformat(timespec="seconds")
+        if log_path.exists():  # numbers add up across restarts, but never across models or thresholds
             for entry in map(json.loads, log_path.read_text().splitlines()):
-                if entry["model"] == predictor.name:
+                if (entry["model"], entry["threshold"]) == (predictor.name, threshold):
+                    self.counting_since = min(self.counting_since, entry["t"])
                     self.board.add(entry["speed"], called=entry["called"], blunder=entry["blunder"])
 
     def state(self) -> dict:
@@ -55,6 +57,7 @@ class Watcher:
             "trained": not isinstance(self.predictor, DevHeuristicPredictor),
             "threshold": self.threshold,
             "scoreboard": self.board.snapshot(),
+            "counting_since": self.counting_since,
             "games": [game.view() for game in self.games.values()],
             "verifier": {"engine": "Stockfish", "depth": self.verifier.depth, "queue": self.to_verify.qsize()},
             "skipped": self.skipped,

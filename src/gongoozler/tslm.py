@@ -166,8 +166,12 @@ def metrics(windows: list[Window], scores: np.ndarray, threshold: float) -> dict
 
     top = np.argsort(-scores)[: max(1, len(scores) // 10)]
     base_rate = float(labels.mean())
+    rng = np.random.default_rng(0)
+    resamples = (rng.integers(0, len(labels), len(labels)) for _ in range(1000))
+    aucs = [roc_auc_score(labels[i], scores[i]) for i in resamples if 0 < labels[i].sum() < len(i)]
     return {
         **ranking(np.ones(len(labels), bool)),
+        "auc_ci95": [float(x) for x in np.percentile(aucs, [2.5, 97.5])],  # bootstrap over the scored windows
         "top_decile_precision": float(labels[top].mean()),
         "top_decile_lift": float(labels[top].mean() / base_rate) if base_rate else None,
         "threshold": threshold,
