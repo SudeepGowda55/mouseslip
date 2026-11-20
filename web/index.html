@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gongoozler · it calls the blunder without seeing the board</title>
+<title>Gardyloo · it calls the blunder without seeing the board</title>
 <meta name="description" content="A time-series language model that watches live chess through two clocks and the evaluation bar, calls the next blunder before it happens, and lets Stockfish keep score.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Gongoozler · it calls the blunder without seeing the board">
+<meta property="og:title" content="Gardyloo · it calls the blunder without seeing the board">
 <meta property="og:description" content="A time-series language model that watches live chess through two clocks and the evaluation bar, calls the next blunder before it happens, and lets Stockfish keep score.">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
@@ -21,16 +21,16 @@
 <a class="skip" href="#main">Skip to the live games</a>
 
 <header class="nav">
-  <a class="brand" href="#/" data-go="watch" aria-label="Gongoozler, home">
+  <a class="brand" href="#/" data-go="watch" aria-label="Gardyloo, home">
     <svg viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12C8 3 32 3 38 12C32 21 8 21 2 12Z" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="20" cy="12" r="5.2" fill="currentColor"/></svg>
-    <span>Gongoozler</span>
+    <span>Gardyloo</span>
   </a>
   <nav aria-label="Views">
     <a href="#/" data-go="watch" class="mag">Watch</a>
     <a href="#/score" data-go="score" class="mag">Scoreboard</a>
     <a href="#/how" data-go="how" class="mag">How it works</a>
     <!-- set href to the repository and remove `hidden` -->
-    <a class="gh mag" hidden target="_blank" rel="noreferrer" aria-label="GitHub repository"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg></a>
+    <a class="gh mag" href="https://github.com/SudeepGowda55/gardyloo" target="_blank" rel="noreferrer" aria-label="GitHub repository"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg></a>
   </nav>
 </header>
 
@@ -45,7 +45,7 @@
       <div class="lane"><p class="hl" aria-hidden="true"><span class="line" data-split>One call.</span></p><span class="pen" id="penE"></span></div>
     </div>
     <div class="hero-foot wrap">
-      <p class="lede">Gongoozler is a small time-series language model that follows a chess game the way a spectator with no view of the board would. It reads White's clock, Black's clock and the evaluation bar, calls the next blunder before it happens and says why. Then Stockfish keeps score.</p>
+      <p class="lede">Gardyloo is a small time-series language model that follows a chess game the way a spectator with no view of the board would. It reads White's clock, Black's clock and the evaluation bar, calls the next blunder before it happens and says why. Then Stockfish keeps score.</p>
       <div class="hero-side">
         <p class="reading" id="reading" aria-live="polite">Connecting to the watcher…</p>
         <div class="cta">
@@ -101,7 +101,7 @@
 <section class="view" id="view-how" data-view="how" hidden>
   <div class="wrap page-head">
     <h1 class="hl small"><span class="line" data-split>Watching without</span> <span class="line" data-split>seeing.</span></h1>
-    <p class="lede">A gongoozler is an idle spectator. This one cannot see the pieces. Scroll through one real game from the test set to see what it is given and how it is judged.</p>
+    <p class="lede">“Gardyloo!” was the cry in old Edinburgh before something was thrown from a window: a warning, just before it lands. This model shouts before a blunder, and it cannot see the pieces. Scroll through one real game from the test set to see what it is given and how it is judged.</p>
   </div>
   <div class="story" id="story">
     <div class="stage">
@@ -134,7 +134,7 @@
 </main>
 
 <footer class="foot wrap">
-  <p>Gongoozler, an entry for the TimeNet Online Hackathon. Games are real rated Lichess games in progress, shown without player names. <span id="footFeed"></span></p>
+  <p>Gardyloo, an entry for the TimeNet Online Hackathon. Games are real rated Lichess games in progress, shown without player names. <span id="footFeed"></span></p>
 </footer>
 
 <div class="banner" id="banner" role="status" aria-live="assertive" hidden></div>

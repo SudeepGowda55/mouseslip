@@ -7,9 +7,9 @@ for mode in clocks+engine clocks; do
   [ -f "results/tslm-$mode.json" ] && continue
   for attempt in 1 2 3 4 5; do
     resume=""; [ -f "checkpoints/last-$mode.pt" ] && resume="--resume"
-    uv run python -m gongoozler.tslm train --mode $mode --lora --every 1000 --log-every 50 $resume \
+    uv run python -m gardyloo.tslm train --mode $mode --lora --every 1000 --log-every 50 $resume \
       >> "checkpoints/stdout-$mode.log" 2>&1 && break
     sleep 30
   done
-  uv run python -m gongoozler.tslm eval --mode $mode >> "checkpoints/stdout-$mode.log" 2>&1
+  uv run python -m gardyloo.tslm eval --mode $mode >> "checkpoints/stdout-$mode.log" 2>&1
 done

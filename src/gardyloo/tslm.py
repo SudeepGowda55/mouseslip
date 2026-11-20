@@ -4,9 +4,9 @@ The model never sees the board. In mode "clocks+engine" it reads both clocks and
 bar; in mode "clocks" (the ablation) only the clocks. It first writes what it sees in the series and
 then answers, so the answer can rest on its own description.
 
-    uv run python -m gongoozler.tslm train
-    uv run python -m gongoozler.tslm eval
-    uv run python -m gongoozler.tslm explain --n 5
+    uv run python -m gardyloo.tslm train
+    uv run python -m gardyloo.tslm eval
+    uv run python -m gardyloo.tslm explain --n 5
 """
 
 import argparse
@@ -19,7 +19,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 import torch
 import torch.nn.functional as F
 
-from gongoozler.data import Window, load_windows
+from gardyloo.data import Window, load_windows
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECKPOINTS = ROOT / "checkpoints"

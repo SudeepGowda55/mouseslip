@@ -5,7 +5,7 @@ from typing import Protocol
 
 import numpy as np
 
-from gongoozler.data import Window
+from gardyloo.data import Window
 
 ROOT = Path(__file__).resolve().parents[2]
 TSLM_CHECKPOINT = ROOT / "checkpoints" / "tslm-clocks.pt"
@@ -88,11 +88,11 @@ def load_predictor(prefer: str | None = None) -> Predictor:
         FileNotFoundError: If no trained model is on disk.
     """
     if prefer != "baseline" and TSLM_CHECKPOINT.exists():
-        from gongoozler.tslm import TslmPredictor  # noqa: PLC0415 (torch is slow to import)
+        from gardyloo.tslm import TslmPredictor  # noqa: PLC0415 (torch is slow to import)
 
         return TslmPredictor(TSLM_CHECKPOINT)
     if prefer != "tslm" and BASELINE_MODEL.exists():
-        from gongoozler.baselines import BaselinePredictor  # noqa: PLC0415
+        from gardyloo.baselines import BaselinePredictor  # noqa: PLC0415
 
         return BaselinePredictor(BASELINE_MODEL)
     raise FileNotFoundError("no trained model found; run the training or the baselines first")

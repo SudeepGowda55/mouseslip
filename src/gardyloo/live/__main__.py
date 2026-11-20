@@ -1,4 +1,4 @@
-"""Run the live watcher: uv run python -m gongoozler.live"""
+"""Run the live watcher: uv run python -m gardyloo.live"""
 
 import argparse
 import json
@@ -7,11 +7,11 @@ import os
 
 import uvicorn
 
-from gongoozler.live.heuristic import DevHeuristicPredictor
-from gongoozler.live.server import create_app
-from gongoozler.live.verifier import DEPTH
-from gongoozler.live.watcher import Watcher
-from gongoozler.predict import ROOT, Predictor, load_predictor
+from gardyloo.live.heuristic import DevHeuristicPredictor
+from gardyloo.live.server import create_app
+from gardyloo.live.verifier import DEPTH
+from gardyloo.live.watcher import Watcher
+from gardyloo.predict import ROOT, Predictor, load_predictor
 
 FALLBACK_THRESHOLD = 0.40
 

@@ -3,7 +3,7 @@
 import chess
 import chess.engine
 
-from gongoozler.live.game import winning_chances
+from gardyloo.live.game import winning_chances
 
 STOCKFISH = "/opt/homebrew/bin/stockfish"
 # Depth 12 on one thread took about 70 ms a position on an M1 and stayed within 0.05 winning chances of depth 18

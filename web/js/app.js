@@ -1,5 +1,5 @@
 "use strict";
-/* Gongoozler's page: live games as three time series, calls as paper slips, an honest scoreboard. No board anywhere. */
+/* Gardyloo's page: live games as three time series, calls as paper slips, an honest scoreboard. No board anywhere. */
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -248,7 +248,7 @@ function tote() {
 function scoreView() {
   const sb = S.board; if (!sb) return;
   const a = sb.all, bar = (cls, text, v, none) => `<div class="vs ${cls}" style="--v:${v ?? 0}"><p class="k"><span>${text}</span><b>${v == null ? none : pct(v)}</b></p><div class="track"><i></i></div></div>`;
-  $("#versus").innerHTML = bar("model", "When Gongoozler calls a blunder, one follows", a.precision, "waiting for the first call")
+  $("#versus").innerHTML = bar("model", "When Gardyloo calls a blunder, one follows", a.precision, "waiting for the first call")
     + bar("", "After any position at all, one follows (live base rate)", a.base_rate, "nothing judged yet");
   const cols = ["all", ...SPEEDS], rows = [
     ["Calls judged", b => b.calls], ["Hits", b => b.hits], ["Precision", b => pct(b.precision)], ["Live base rate", b => pct(b.base_rate)],
@@ -261,7 +261,7 @@ function scoreView() {
   $("#footFeed").textContent = `Feed: ${i.feed}.`;
 }
 
-const SETS = { priors: ["Priors only", "ratings, time control, ply, side to move"], "clock-dynamics": ["Clocks alone", "seconds left and spent per move"], clocks: ["Priors + clocks", "all a live game offers without an engine"], "clocks+engine": ["Priors + clocks + evaluation bar", "what Gongoozler reads"] };
+const SETS = { priors: ["Priors only", "ratings, time control, ply, side to move"], "clock-dynamics": ["Clocks alone", "seconds left and spent per move"], clocks: ["Priors + clocks", "all a live game offers without an engine"], "clocks+engine": ["Priors + clocks + evaluation bar", "what Gardyloo reads"] };
 function offline() {
   const R = S.results; if (!R) return;
   const base = R.baselines, x = v => clamp((v - .5) / .35), rows = [];
@@ -401,7 +401,7 @@ function show(v) {
   S.view = document.body.dataset.view = v;
   $$(".view").forEach(s => s.hidden = s.dataset.view !== v);
   $$(".nav nav a[data-go]").forEach(a => a.dataset.go === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
-  document.title = v === "watch" ? "Gongoozler · it calls the blunder without seeing the board" : `${VIEWS[v][1]} · Gongoozler`;
+  document.title = v === "watch" ? "Gardyloo · it calls the blunder without seeing the board" : `${VIEWS[v][1]} · Gardyloo`;
   lenis ? (lenis.resize(), lenis.scrollTo(0, { immediate: true })) : scrollTo(0, 0);
   headlines($(`[data-view="${v}"]`)); redraw();
 }

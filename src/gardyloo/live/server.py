@@ -9,11 +9,11 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from gongoozler.live.watcher import Watcher
-from gongoozler.predict import ROOT
+from gardyloo.live.watcher import Watcher
+from gardyloo.predict import ROOT
 
 KEEPALIVE_SECONDS = 15
-log = logging.getLogger("gongoozler.live")
+log = logging.getLogger("gardyloo.live")
 
 
 def create_app(watcher: Watcher) -> FastAPI:
@@ -25,7 +25,7 @@ def create_app(watcher: Watcher) -> FastAPI:
         app.state.task.cancel()
         await asyncio.gather(app.state.task, return_exceptions=True)
 
-    app = FastAPI(title="Gongoozler live", lifespan=lifespan)
+    app = FastAPI(title="Gardyloo live", lifespan=lifespan)
 
     @app.get("/api/health")
     def health() -> dict:

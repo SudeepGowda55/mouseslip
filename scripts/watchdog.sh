@@ -5,7 +5,7 @@ seconds() { ps -o cputime= -p $1 | awk -F: '{ s = 0; for (i = 1; i <= NF; i++) s
 last_pid=0; last_cpu=0
 while pgrep -f "scripts/train_all.sh" > /dev/null; do
   sleep 300
-  pid=$(pgrep -f "python.* -m gongoozler.tslm" | tail -1)
+  pid=$(pgrep -f "python.* -m gardyloo.tslm" | tail -1)
   [ -z "$pid" ] && continue
   cpu=$(seconds $pid)
   # A working run burns over a minute of CPU in five; the deadlocked one burned about a second.

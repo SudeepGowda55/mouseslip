@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-from gongoozler.baselines import (
+from gardyloo.baselines import (
     FEATURE_SETS,
     BaselinePredictor,
     bootstrap_aucs,
@@ -18,8 +18,8 @@ from gongoozler.baselines import (
     speed_bucket,
     top_precision,
 )
-from gongoozler.data import Window
-from gongoozler.predict import BASELINE_MODEL, make_window
+from gardyloo.data import Window
+from gardyloo.predict import BASELINE_MODEL, make_window
 
 
 def test_move_times_without_increment():
@@ -131,7 +131,7 @@ def test_baseline_predictor_on_a_live_window(tmp_path):
     assert "not a worry" in predictor.explain(make_window([180, 180, 181, 181, 182], "180+2", 1500, 1600))
 
 
-@pytest.mark.skipif(not BASELINE_MODEL.exists(), reason="run `uv run python -m gongoozler.baselines` first")
+@pytest.mark.skipif(not BASELINE_MODEL.exists(), reason="run `uv run python -m gardyloo.baselines` first")
 def test_shipped_model_is_small_and_loads():
     assert BASELINE_MODEL.stat().st_size < 5_000_000
     predictor = BaselinePredictor(BASELINE_MODEL)

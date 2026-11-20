@@ -1,10 +1,10 @@
 """A stand-in used only when no trained model is on disk, so the watcher can be developed and demoed end to end."""
 
-from gongoozler.data import Window
+from gardyloo.data import Window
 
 
 class DevHeuristicPredictor:
-    """Time left versus recent pace. Not trained on anything: its numbers say nothing about Gongoozler."""
+    """Time left versus recent pace. Not trained on anything: its numbers say nothing about Gardyloo."""
 
     name = "development heuristic (no trained model on disk)"
 

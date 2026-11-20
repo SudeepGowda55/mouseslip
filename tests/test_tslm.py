@@ -5,8 +5,8 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from gongoozler import tslm
-from gongoozler.predict import make_window
+from gardyloo import tslm
+from gardyloo.predict import make_window
 
 
 def window(clocks, time_control="300+0", label=0):
