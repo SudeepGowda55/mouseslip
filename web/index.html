@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gongoozler · it calls the blunder without seeing the board</title>
+<meta name="description" content="A time-series language model that watches live chess through two clocks and the evaluation bar, calls the next blunder before it happens, and lets Stockfish keep score.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gongoozler · it calls the blunder without seeing the board">
+<meta property="og:description" content="A time-series language model that watches live chess through two clocks and the evaluation bar, calls the next blunder before it happens, and lets Stockfish keep score.">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta name="twitter:card" content="summary_large_image">
+<!-- og:image, og:url and the canonical link need the production domain as absolute https URLs; the image is assets/og.png -->
+<meta name="theme-color" content="#17543f">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/hepta-slab.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the live games</a>
+
+<header class="nav">
+  <a class="brand" href="#/" data-go="watch" aria-label="Gongoozler, home">
+    <svg viewBox="0 0 40 24" aria-hidden="true"><path d="M2 12C8 3 32 3 38 12C32 21 8 21 2 12Z" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="20" cy="12" r="5.2" fill="currentColor"/></svg>
+    <span>Gongoozler</span>
+  </a>
+  <nav aria-label="Views">
+    <a href="#/" data-go="watch" class="mag">Watch</a>
+    <a href="#/score" data-go="score" class="mag">Scoreboard</a>
+    <a href="#/how" data-go="how" class="mag">How it works</a>
+    <!-- set href to the repository and remove `hidden` -->
+    <a class="gh mag" hidden target="_blank" rel="noreferrer" aria-label="GitHub repository"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg></a>
+  </nav>
+</header>
+
+<main id="main">
+<!-- ───────────── Watch ───────────── -->
+<section class="view" id="view-watch" data-view="watch">
+  <div class="hero">
+    <div class="lanes" id="lanes">
+      <canvas id="heroCanvas" aria-label="Live chart of the featured game: White's clock, Black's clock and the evaluation bar"></canvas>
+      <div class="lane"><h1 class="hl" aria-label="No board. Three lines. One call."><span class="line" aria-hidden="true" data-split>No board.</span></h1><span class="pen" id="penW"></span></div>
+      <div class="lane"><p class="hl" aria-hidden="true"><span class="line" data-split>Three lines.</span></p><span class="pen" id="penB"></span></div>
+      <div class="lane"><p class="hl" aria-hidden="true"><span class="line" data-split>One call.</span></p><span class="pen" id="penE"></span></div>
+    </div>
+    <div class="hero-foot wrap">
+      <p class="lede">Gongoozler is a small time-series language model that follows a chess game the way a spectator with no view of the board would. It reads White's clock, Black's clock and the evaluation bar, calls the next blunder before it happens and says why. Then Stockfish keeps score.</p>
+      <div class="hero-side">
+        <p class="reading" id="reading" aria-live="polite">Connecting to the watcher…</p>
+        <div class="cta">
+          <a class="btn mag" href="#wall" data-scroll="#wall">Watch the calls</a>
+          <a class="btn ghost mag" href="#/how" data-go="how">How it works</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="tote" id="tote" aria-label="Live scoreboard"></div>
+    <p class="tote-note" id="toteNote"></p>
+  </div>
+
+  <div class="wrap wall" id="wall">
+    <div class="games-col">
+      <h2 class="h2">Live games, as the model sees them</h2>
+      <p class="sub" id="feedNote"></p>
+      <div class="games" id="games"></div>
+    </div>
+    <aside class="calls-col" aria-label="Calls">
+      <h2 class="h2">Calls</h2>
+      <p class="sub">Made before the next move is played. Stockfish stamps each one after three moves.</p>
+      <div class="slips" id="slips" aria-live="polite"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────── Scoreboard ───────────── -->
+<section class="view" id="view-score" data-view="score" hidden>
+  <div class="wrap page-head">
+    <h1 class="hl small"><span class="line" data-split>Every call,</span> <span class="line" data-split>counted.</span></h1>
+    <p class="lede">A call only counts if it was made before the next move arrived. Stockfish judges the mover's next three moves. Misses stay on the board, and a game that ends early is void, not a hit.</p>
+  </div>
+  <div class="wrap">
+    <h2 class="h2">Live, since the watcher started counting</h2>
+    <p class="sub" id="modelLine"></p>
+    <div class="versus" id="versus"></div>
+    <div class="table-scroll"><table class="board" id="board"></table></div>
+    <p class="fine" id="liveFine"></p>
+  </div>
+  <div class="wrap">
+    <h2 class="h2">Offline, on held-out games</h2>
+    <p class="sub" id="offlineSub"></p>
+    <div class="auc" id="auc"></div>
+    <p class="finding" id="finding"></p>
+    <p class="fine" id="offlineFine"></p>
+  </div>
+</section>
+
+<!-- ───────────── How it works ───────────── -->
+<section class="view" id="view-how" data-view="how" hidden>
+  <div class="wrap page-head">
+    <h1 class="hl small"><span class="line" data-split>Watching without</span> <span class="line" data-split>seeing.</span></h1>
+    <p class="lede">A gongoozler is an idle spectator. This one cannot see the pieces. Scroll through one real game from the test set to see what it is given and how it is judged.</p>
+  </div>
+  <div class="story" id="story">
+    <div class="stage">
+      <div class="wrap stage-grid">
+        <div class="chapters">
+          <article class="ch on"><h2>The dataset</h2><p><b>lichess/clock-blunder</b> on TimeNet: 60,358 windows cut from 15,205 real rated Lichess games. A window is up to 40 plies of three numbers per ply. No moves, no pieces, no board.</p></article>
+          <article class="ch"><h2>The fine-tuned model</h2><p>OpenTSLM on Gemma-3-270M reads the three series and answers one question: will the player to move blunder within their next three moves? Then it gives its reason in a sentence.</p></article>
+          <article class="ch"><h2>The live watcher</h2><p>On real Lichess games in progress it asks that question after every move. When the probability crosses the threshold it makes the call out loud, before the next move has been played.</p></article>
+          <article class="ch"><h2>The Stockfish referee</h2><p>Stockfish then evaluates the mover's next three moves. Losing 0.30 or more winning chances in one move is a blunder and the call is a hit. Otherwise it is a miss. If the game ends first it is void.</p></article>
+        </div>
+        <div class="bench">
+          <p class="bench-cap" id="benchCap"></p>
+          <canvas id="storyCanvas" aria-label="One real game window: both clocks and the evaluation, revealed as you scroll"></canvas>
+          <div class="bench-row">
+            <div class="qa" id="qa"><p class="q" id="qaQ"></p><p class="a" id="qaA"></p></div>
+            <div class="slip demo" id="demoSlip"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rail" aria-hidden="true"><i id="railFill"></i></div>
+    </div>
+  </div>
+  <div class="wrap after-story">
+    <h2 class="h2">What we found, plainly</h2>
+    <p class="finding">The clocks alone add almost nothing beyond knowing the ratings and the time control. The evaluation bar carries the signal.</p>
+    <p class="sub" id="howFinding"></p>
+    <div class="cta"><a class="btn mag" href="#/score" data-go="score">See the scoreboard</a><a class="btn ghost mag" href="#/" data-go="watch">Watch live games</a></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot wrap">
+  <p>Gongoozler, an entry for the TimeNet Online Hackathon. Games are real rated Lichess games in progress, shown without player names. <span id="footFeed"></span></p>
+</footer>
+
+<div class="banner" id="banner" role="status" aria-live="assertive" hidden></div>
+<div class="slam" id="slam" aria-hidden="true"><div class="slam-paper"><span class="slam-stamp" id="slamText"></span><span class="slam-sub">called before it happens</span></div></div>
+<div class="eye" id="eye" aria-hidden="true"><i></i></div>
+
+<script src="js/lenis.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
