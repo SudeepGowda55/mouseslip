@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 import math
 import time
 
-from gardyloo.data import Window
-from gardyloo.predict import make_window
+from mouseslip.data import Window
+from mouseslip.predict import make_window
 
 FIRST_DECISION_PLY = 12  # the dataset has no earlier windows
 WINDOW_PLIES = 40  # the most plies a window holds, as in the dataset

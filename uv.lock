@@ -994,41 +994,6 @@ wheels = [
 ]
 
 [[package]]
-name = "gardyloo"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "chess" },
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "numpy" },
-    { name = "opentslm" },
-    { name = "scikit-learn" },
-    { name = "timenet" },
-    { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "chess", specifier = ">=1.11.2" },
-    { name = "fastapi", specifier = ">=0.165.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "numpy", specifier = ">=2.5.5" },
-    { name = "opentslm", git = "https://github.com/OpenTSLM/OpenTSLM" },
-    { name = "scikit-learn", specifier = ">=1.9.1" },
-    { name = "timenet", specifier = ">=0.12.0" },
-    { name = "uvicorn", specifier = ">=0.54.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.2.0" }]
-
-[[package]]
 name = "h11"
 version = "0.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1524,6 +1489,41 @@ sdist = { url = "https://files.pythonhosted.org/packages/52/b8/c63995bebbb9ac9c0
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/57/3c4b1c6f2e0cc29ba023802458ea3d2a996f87085559e4a5f2192d549532/more_itertools-11.2.1-py3-none-any.whl", hash = "sha256:35a7377edd1dd6608dcb2cdf534ded55ea32d49448875ad042cd3f879fb1ded0", size = 74405, upload-time = "2026-10-14T18:50:29.116Z" },
 ]
+
+[[package]]
+name = "mouseslip"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "chess" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "numpy" },
+    { name = "opentslm" },
+    { name = "scikit-learn" },
+    { name = "timenet" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chess", specifier = ">=1.11.2" },
+    { name = "fastapi", specifier = ">=0.165.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "numpy", specifier = ">=2.5.5" },
+    { name = "opentslm", git = "https://github.com/OpenTSLM/OpenTSLM" },
+    { name = "scikit-learn", specifier = ">=1.9.1" },
+    { name = "timenet", specifier = ">=0.12.0" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.2.0" }]
 
 [[package]]
 name = "mpmath"

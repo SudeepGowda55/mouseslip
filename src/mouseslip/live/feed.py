@@ -5,7 +5,7 @@ import json
 
 import httpx
 
-from gardyloo.live.game import Game
+from mouseslip.live.game import Game
 
 LICHESS = "https://lichess.org"
 

@@ -12,8 +12,8 @@ from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_s
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from gardyloo.data import DATASET, Window, load_windows
-from gardyloo.predict import BASELINE_MODEL, ROOT
+from mouseslip.data import DATASET, Window, load_windows
+from mouseslip.predict import BASELINE_MODEL, ROOT
 
 RESULTS = ROOT / "results" / "baselines.json"
 RECENT = 5  # own moves, the horizon the dataset's rationales use

@@ -6,10 +6,10 @@ import chess
 import chess.engine
 import pytest
 
-from gardyloo.live.game import Decision, Game, Scoreboard, chances_lost, winning_chances
-from gardyloo.live.heuristic import DevHeuristicPredictor
-from gardyloo.live.verifier import score_chances, score_pawns, terminal_chances
-from gardyloo.live.watcher import Watcher
+from mouseslip.live.game import Decision, Game, Scoreboard, chances_lost, winning_chances
+from mouseslip.live.heuristic import DevHeuristicPredictor
+from mouseslip.live.verifier import score_chances, score_pawns, terminal_chances
+from mouseslip.live.watcher import Watcher
 
 # One real rapid game as /api/stream/game/<id> sent it (White resigned after 32 plies); id and names replaced.
 RECORDED = """\

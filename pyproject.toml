@@ -1,5 +1,5 @@
 [project]
-name = "gardyloo"
+name = "mouseslip"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gardyloo = "gardyloo:main"
+mouseslip = "mouseslip:main"
 
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]

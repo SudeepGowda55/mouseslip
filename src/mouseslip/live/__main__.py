@@ -1,4 +1,4 @@
-"""Run the live watcher: uv run python -m gardyloo.live"""
+"""Run the live watcher: uv run python -m mouseslip.live"""
 
 import argparse
 import json
@@ -7,11 +7,11 @@ import os
 
 import uvicorn
 
-from gardyloo.live.heuristic import DevHeuristicPredictor
-from gardyloo.live.server import create_app
-from gardyloo.live.verifier import DEPTH
-from gardyloo.live.watcher import Watcher
-from gardyloo.predict import ROOT, Predictor, load_predictor
+from mouseslip.live.heuristic import DevHeuristicPredictor
+from mouseslip.live.server import create_app
+from mouseslip.live.verifier import DEPTH
+from mouseslip.live.watcher import Watcher
+from mouseslip.predict import ROOT, Predictor, load_predictor
 
 FALLBACK_THRESHOLD = 0.40
 

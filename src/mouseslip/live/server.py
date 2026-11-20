@@ -9,11 +9,11 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from gardyloo.live.watcher import Watcher
-from gardyloo.predict import ROOT
+from mouseslip.live.watcher import Watcher
+from mouseslip.predict import ROOT
 
 KEEPALIVE_SECONDS = 15
-log = logging.getLogger("gardyloo.live")
+log = logging.getLogger("mouseslip.live")
 
 
 def create_app(watcher: Watcher) -> FastAPI:
@@ -25,7 +25,7 @@ def create_app(watcher: Watcher) -> FastAPI:
         app.state.task.cancel()
         await asyncio.gather(app.state.task, return_exceptions=True)
 
-    app = FastAPI(title="Gardyloo live", lifespan=lifespan)
+    app = FastAPI(title="Mouse Slip live", lifespan=lifespan)
 
     @app.get("/api/health")
     def health() -> dict:

@@ -10,11 +10,11 @@ import time
 
 import httpx
 
-from gardyloo.live import feed
-from gardyloo.live.game import FIRST_DECISION_PLY, SPEEDS, Decision, Game, Scoreboard
-from gardyloo.live.heuristic import DevHeuristicPredictor
-from gardyloo.live.verifier import DEPTH, Verifier
-from gardyloo.predict import ROOT, Predictor
+from mouseslip.live import feed
+from mouseslip.live.game import FIRST_DECISION_PLY, SPEEDS, Decision, Game, Scoreboard
+from mouseslip.live.heuristic import DevHeuristicPredictor
+from mouseslip.live.verifier import DEPTH, Verifier
+from mouseslip.predict import ROOT, Predictor
 
 LOG = ROOT / ".cache" / "live-log.jsonl"
 REPLAY_SECONDS = 1.5  # positions this soon after connecting are the replay of moves already played
@@ -23,7 +23,7 @@ ARENA_SECONDS = 300  # how often the list of arenas is read again
 LINGER_SECONDS = 30  # a finished game stays visible this long
 MAX_FAILURES = 5
 
-log = logging.getLogger("gardyloo.live")
+log = logging.getLogger("mouseslip.live")
 
 
 class Watcher:

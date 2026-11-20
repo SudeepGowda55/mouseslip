@@ -1,10 +1,10 @@
-# Gardyloo
+# Mouse Slip
 
 **It calls the blunder without seeing the board.**
 
-"Gardyloo!" was the cry in old Edinburgh before something was thrown from a window: a warning, just before it lands.
+A mouse slip is chess slang for a blunder made by a slip of the hand: you meant one move and played another.
 
-Gardyloo is a time-series language model that follows a chess game the way a spectator with no view of the board would. It reads three lines, White's clock, Black's clock and the engine's evaluation bar, then says whether the player to move is about to blunder and why. A live watcher runs it on real Lichess games in progress, and Stockfish keeps score.
+Mouse Slip is a time-series language model that follows a chess game the way a spectator with no view of the board would. It reads three lines, White's clock, Black's clock and the engine's evaluation bar, then says whether the player to move is about to blunder and why. A live watcher runs it on real Lichess games in progress, and Stockfish keeps score.
 
 Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team Matcrypt (Sudeep and Manvith).
 
@@ -15,9 +15,9 @@ Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team 
 | Part | What it does |
 |---|---|
 | **Dataset** `lichess/clock-blunder` | 60,358 windows from 15,205 real rated Lichess games, contributed to TimeNet in [OpenTSLM/TimeNet#834](https://github.com/OpenTSLM/TimeNet/pull/834) |
-| **Model** `src/gardyloo/tslm.py` | Fine-tunes [OpenTSLM](https://github.com/OpenTSLM/OpenTSLM) (soft-prompt variant) on Gemma-3-270M with LoRA |
-| **Baselines** `src/gardyloo/baselines.py` | Logistic regression and gradient boosting on hand-made features, with an ablation |
-| **Live watcher** `src/gardyloo/live/` | Follows running Lichess games, calls blunders, lets Stockfish judge each call |
+| **Model** `src/mouseslip/tslm.py` | Fine-tunes [OpenTSLM](https://github.com/OpenTSLM/OpenTSLM) (soft-prompt variant) on Gemma-3-270M with LoRA |
+| **Baselines** `src/mouseslip/baselines.py` | Logistic regression and gradient boosting on hand-made features, with an ablation |
+| **Live watcher** `src/mouseslip/live/` | Follows running Lichess games, calls blunders, lets Stockfish judge each call |
 | **Web page** `web/` | The live games as three lines each, the calls and an honest scoreboard |
 
 ## The task
@@ -61,7 +61,7 @@ Gradient boosting on hand-made features, on the 6,167 held-out test windows. AUC
 Needs Python 3.12, [uv](https://docs.astral.sh/uv/), Stockfish (`brew install stockfish`) and, for training, a Hugging Face token with the [Gemma licence](https://huggingface.co/google/gemma-3-270m) accepted.
 
 ```bash
-git clone https://github.com/SudeepGowda55/gardyloo && cd gardyloo
+git clone https://github.com/SudeepGowda55/mouseslip && cd mouseslip
 uv sync
 
 # the dataset (until the pull request is merged, build it from the fork)
@@ -70,10 +70,10 @@ git clone -b feature/lichess-clock-blunder https://github.com/SudeepGowda55/Time
   && uv run timenet-build build lichess/clock-blunder --no-isolation)
 
 uv run pytest                              # 44 tests, no model or network needed
-uv run python -m gardyloo.baselines        # the table above
+uv run python -m mouseslip.baselines        # the table above
 scripts/train_all.sh                       # both models; about 4.5 hours each on an M1
-uv run python -m gardyloo.tslm explain     # a few test windows with the model's own words
-uv run python -m gardyloo.live             # live watcher and web page on http://127.0.0.1:8765
+uv run python -m mouseslip.tslm explain     # a few test windows with the model's own words
+uv run python -m mouseslip.live             # live watcher and web page on http://127.0.0.1:8765
 uv run python scripts/demo.py              # the same calls in a terminal
 ```
 
@@ -101,11 +101,11 @@ Two things to know when reading the live numbers:
 
 | Path | What it is |
 |---|---|
-| `src/gardyloo/data.py` | Loads the dataset from the local TimeNet registry |
-| `src/gardyloo/tslm.py` | Prompt building, training, evaluation, the model behind the predictor interface |
-| `src/gardyloo/baselines.py` | Feature sets, baselines, ablation |
-| `src/gardyloo/predict.py` | The one interface both models sit behind |
-| `src/gardyloo/live/` | Feed, game state, Stockfish referee, watcher, HTTP server |
+| `src/mouseslip/data.py` | Loads the dataset from the local TimeNet registry |
+| `src/mouseslip/tslm.py` | Prompt building, training, evaluation, the model behind the predictor interface |
+| `src/mouseslip/baselines.py` | Feature sets, baselines, ablation |
+| `src/mouseslip/predict.py` | The one interface both models sit behind |
+| `src/mouseslip/live/` | Feed, game state, Stockfish referee, watcher, HTTP server |
 | `web/` | Static page served by the watcher |
 | `scripts/` | Training script, watchdog, terminal demo |
 | `results/` | Test results as JSON |

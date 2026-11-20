@@ -1,6 +1,6 @@
-"""Terminal run-of-show: Gardyloo's calls and Stockfish's verdicts as they happen, with the running score.
+"""Terminal run-of-show: Mouse Slip's calls and Stockfish's verdicts as they happen, with the running score.
 
-Start the watcher first (uv run python -m gardyloo.live), then run: uv run python scripts/demo.py
+Start the watcher first (uv run python -m mouseslip.live), then run: uv run python scripts/demo.py
 """
 
 import argparse
@@ -54,7 +54,7 @@ def main() -> None:
         while True:
             try:
                 state = http.get("/api/state").json()
-                print(f"Gardyloo is watching {len(state['games'])} live Lichess games with the clocks only.")
+                print(f"Mouse Slip is watching {len(state['games'])} live Lichess games with the clocks only.")
                 print(f"model: {state['model']}{'' if state['trained'] else '  ** NOT A TRAINED MODEL **'}")
                 print(f"calls a blunder at P >= {state['threshold']:.3f}; Stockfish depth {state['verifier']['depth']} is the referee")
                 print(f"so far: {score_line(state['scoreboard'])}\n")

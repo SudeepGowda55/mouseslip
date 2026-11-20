@@ -5,8 +5,8 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from gardyloo import tslm
-from gardyloo.predict import make_window
+from mouseslip import tslm
+from mouseslip.predict import make_window
 
 
 def window(clocks, time_control="300+0", label=0):
