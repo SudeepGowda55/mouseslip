@@ -47,5 +47,6 @@
   },
   "description_exact_match": 0.1191827468785471,
   "auc_after_reference_description": 0.748452903930726,
-  "call_threshold_top_decile": 0.31710299849510193
+  "call_threshold_top_decile": 0.31710299849510193,
+  "note": "first run, before the padding fix: the series labels and the question never reached the model"
 }

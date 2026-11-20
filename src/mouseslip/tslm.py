@@ -435,7 +435,6 @@ def evaluate(args: argparse.Namespace) -> None:
     windows = subset(load_windows("test"), args.limit)
     scores, descriptions = score(model, windows, mode)
     reference_scores, _ = score(model, windows, mode, own_words=False)
-    labels = np.array([w.label for w in windows])
     result = {
         "model": f"OpenTSLM-SP on {checkpoint['llm_id']}" + (" + LoRA" if checkpoint.get("lora_enabled") else ""),
         "mode": mode,
@@ -447,8 +446,12 @@ def evaluate(args: argparse.Namespace) -> None:
         **metrics(windows, scores, checkpoint["threshold"]),
         # How well it reads the series: its description against the one computed from the same numbers.
         "description_exact_match": float(np.mean([d == reason(w, mode) for d, w in zip(descriptions, windows, strict=True)])),
-        "auc_after_reference_description": float(roc_auc_score(labels, reference_scores)),
         "call_threshold_top_decile": float(np.quantile(scores, 0.9)),
+        # The description is a fixed function of the inputs, so it can also be computed and handed to the model.
+        "after_computed_description": {
+            **metrics(windows, reference_scores, checkpoint["threshold"]),
+            "call_threshold_top_decile": float(np.quantile(reference_scores, 0.9)),
+        },
     }
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f"tslm-{mode}.json").write_text(json.dumps(result, indent=2) + "\n")
