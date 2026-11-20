@@ -37,6 +37,11 @@ def create_app(watcher: Watcher) -> FastAPI:
     def state() -> dict:
         return watcher.state()
 
+    @app.get("/api/results")
+    def results() -> dict:
+        """The offline test-set results, one entry per file in results/ (the baselines and each trained model)."""
+        return {path.stem: json.loads(path.read_text()) for path in sorted((ROOT / "results").glob("*.json"))}
+
     @app.get("/api/events")
     async def events() -> StreamingResponse:
         queue: asyncio.Queue = asyncio.Queue(maxsize=1000)
