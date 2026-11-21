@@ -279,7 +279,12 @@ function offline() {
     $("#offlineFine").textContent = `${text} Intervals: ${base.bootstrap}. Selection: ${base.selection}.`;
   }
   const tslm = Object.entries(R).filter(([k, r]) => k !== "baselines" && typeof r?.auc === "number");
-  for (const [k, r] of tslm) rows.push({ cls: "tslm", name: r.model || k, sub: [r.mode, r.steps_trained != null && `${r.steps_trained} steps`, r.n != null && `${r.n.toLocaleString()} windows`, r.top_decile_precision != null && `top 10% of scores: ${pct(r.top_decile_precision)} right`].filter(Boolean).join(" · "), auc: r.auc, ci: r.auc_ci95 });
+  const sub = (r, m, how) => [r.mode, r.steps_trained != null && `${r.steps_trained} steps`, how, m.top_decile_precision != null && `top 10% of scores: ${pct(m.top_decile_precision)} right`].filter(Boolean).join(" · ");
+  for (const [k, r] of tslm) {
+    rows.push({ cls: r.note ? "" : "tslm", name: r.model || k, sub: sub(r, r, r.note || (r.answers_after && `answers after ${r.answers_after}`)), auc: r.auc, ci: r.auc_ci95 });
+    const c = r.after_computed_description; // the same model, handed the description instead of writing it
+    if (c) rows.push({ cls: "tslm", name: r.model || k, sub: sub(r, c, "answers after the description computed from its inputs"), auc: c.auc, ci: c.auc_ci95 });
+  }
   $("#auc").innerHTML = rows.map(r => `<div class="auc-row ${r.cls}" style="--x:${x(r.auc)};--lo:${x(r.ci?.[0] ?? r.auc)};--hi:${x(r.ci?.[1] ?? r.auc)}">
       <div class="lab">${esc(r.name)}<small>${esc(r.sub)}</small></div><div class="trk">${r.ci ? '<span class="ci"></span>' : ""}<span class="dot"></span></div>
       <div class="val">${r.auc.toFixed(3)}<small>${r.ci ? `${r.ci[0].toFixed(3)} to ${r.ci[1].toFixed(3)}` : "AUC"}</small></div></div>`).join("")
