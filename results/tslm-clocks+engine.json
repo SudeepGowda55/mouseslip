@@ -1,0 +1,92 @@
+{
+  "model": "OpenTSLM-SP on google/gemma-3-270m + LoRA",
+  "mode": "clocks+engine",
+  "split": "test",
+  "steps_trained": 7000,
+  "validation_auc": 0.743076811164394,
+  "device": "mps",
+  "answers_after": "the model's own description of the series",
+  "n": 6167,
+  "base_rate": 0.23074428409275174,
+  "auc": 0.7407374955412112,
+  "average_precision": 0.46940045508467626,
+  "auc_ci95": [
+    0.7273403606918387,
+    0.7549538887044303
+  ],
+  "top_decile_precision": 0.5974025974025974,
+  "top_decile_lift": 2.5890244681530694,
+  "threshold": 0.3586578965187073,
+  "accuracy": 0.7879033565753203,
+  "majority_class_accuracy": 0.7692557159072483,
+  "by_speed": {
+    "bullet": {
+      "n": 2319,
+      "base_rate": 0.3061664510564899,
+      "auc": 0.779259272227523,
+      "average_precision": 0.5736892754970568
+    },
+    "blitz": {
+      "n": 1960,
+      "base_rate": 0.18928571428571428,
+      "auc": 0.6758238496129897,
+      "average_precision": 0.29161386199565836
+    },
+    "rapid": {
+      "n": 1624,
+      "base_rate": 0.18041871921182265,
+      "auc": 0.6761346007390067,
+      "average_precision": 0.3062055915754614
+    },
+    "classical": {
+      "n": 264,
+      "base_rate": 0.1856060606060606,
+      "auc": 0.7250118652112008,
+      "average_precision": 0.39291534955964924
+    }
+  },
+  "description_exact_match": 0.3711691259931896,
+  "call_threshold_top_decile": 0.29293569922447205,
+  "after_computed_description": {
+    "n": 6167,
+    "base_rate": 0.23074428409275174,
+    "auc": 0.7625025330661417,
+    "average_precision": 0.4896848947504466,
+    "auc_ci95": [
+      0.7490521798490786,
+      0.7757407408236074
+    ],
+    "top_decile_precision": 0.6055194805194806,
+    "top_decile_lift": 2.6242014310355843,
+    "threshold": 0.3586578965187073,
+    "accuracy": 0.7898491973406843,
+    "majority_class_accuracy": 0.7692557159072483,
+    "by_speed": {
+      "bullet": {
+        "n": 2319,
+        "base_rate": 0.3061664510564899,
+        "auc": 0.7903732525669867,
+        "average_precision": 0.5856063545514439
+      },
+      "blitz": {
+        "n": 1960,
+        "base_rate": 0.18928571428571428,
+        "auc": 0.7025261272325405,
+        "average_precision": 0.3207806668422984
+      },
+      "rapid": {
+        "n": 1624,
+        "base_rate": 0.18041871921182265,
+        "auc": 0.7183338760920348,
+        "average_precision": 0.34954575953195005
+      },
+      "classical": {
+        "n": 264,
+        "base_rate": 0.1856060606060606,
+        "auc": 0.7849074513526341,
+        "average_precision": 0.42074515584811556
+      }
+    },
+    "call_threshold_top_decile": 0.3365529179573059
+  }
+}
