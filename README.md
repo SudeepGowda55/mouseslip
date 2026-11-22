@@ -8,7 +8,7 @@ Mouse Slip is a time-series language model that follows a chess game the way a s
 
 Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team Matcrypt (Sudeep and Manvith).
 
-> **Status, 20 November 2026.** The dataset, the baselines, the live watcher and the web page are done. The fine-tuned model is still training, so its test results are not in this README yet. Nothing below is a projected number.
+> **Result in one line.** Fine-tuned on 48,055 real game windows, the model reaches a test AUC of 0.741 writing its own description first, and 0.763 when handed the computed one. That is well above what the clocks and ratings alone give (0.650), and below a gradient-boosting baseline on the same three lines (0.785). Every number below is from a real run on held-out games.
 
 ## What is in here
 
@@ -43,6 +43,8 @@ The probability of a blunder is read from the answer token, after the model's ow
 
 An earlier version answered first and explained afterwards. It stalled at a validation AUC of 0.63, no better than knowing the ratings and the time control alone, so it was dropped.
 
+The description is a fixed function of the numbers (it never looks at the answer), so it can also be computed and handed to the model instead of generated. The results below report both.
+
 ## What the baselines say
 
 Gradient boosting on hand-made features, on the 6,167 held-out test windows. AUC is the chance that a window with a blunder is ranked above one without; 0.5 is guessing.
@@ -55,6 +57,47 @@ Gradient boosting on hand-made features, on the 6,167 held-out test windows. AUC
 | The above plus the evaluation bar | **0.785** | 0.771 to 0.800 | 63% |
 
 **The honest finding:** the clocks alone add almost nothing. Knowing who is playing and how fast the game is already gives 0.642, and adding the full clock series moves it by 0.008 (interval -0.002 to +0.017). The evaluation bar carries the signal: it adds 0.135. The project started as "predict blunders from the clocks alone", and this table is why it no longer claims that.
+
+## What the fine-tuned model scores
+
+OpenTSLM-SP on Gemma-3-270M with LoRA, one epoch over the training split on an M1 laptop (about 4.5 hours). The checkpoint with the best validation AUC (step 7,000 of 12,013) was scored once on the same 6,167 test windows as the baselines.
+
+| Model | AUC | 95% interval | Precision in its top 10% |
+|---|---|---|---|
+| Gradient boosting on clocks + ratings (from the table above) | 0.650 | 0.631 to 0.668 | 42% |
+| **Mouse Slip, answering after its own description** | **0.741** | 0.727 to 0.755 | 60% |
+| **Mouse Slip, answering after the computed description** | **0.763** | 0.749 to 0.776 | 61% |
+| Gradient boosting on the same three lines + ratings (from the table above) | 0.785 | 0.771 to 0.800 | 63% |
+| The same model before the padding fix (below) | 0.623 | 0.604 to 0.639 | 43% |
+
+In the top tenth of its scores, 60% of the windows really are followed by a blunder, against a base rate of 23%: 2.6 times better than picking at random.
+
+**It does not beat gradient boosting.** A 270M-parameter language model reading three raw series lands 0.02 to 0.04 AUC below a tree model given hand-made features of the same series. What it adds is the sentence: every call says why, in words a spectator can check.
+
+**How good are its own descriptions?** On 400 test windows it wrote exactly the computed description 33% of the time (37% over the full test split). By field:
+
+| Part of the description | Correct |
+|---|---|
+| Time left, clock gap, pace | 97% to 99% |
+| Who is better on the board | 99% |
+| How the evaluation is moving (steady, shifting, swinging) | 66% |
+| Blunder counts so far for each side | 57% and 59% |
+
+It reads levels well and counts events poorly. That gap is the whole difference between the two AUC rows: when the counts are handed to it, it uses them.
+
+By speed (answering after its own description): bullet 0.779 (2,319 windows), blitz 0.676 (1,960), rapid 0.676 (1,624), classical 0.725 (264).
+
+## The bug that cost the first run
+
+The first full training run scored 0.623 on test, below the 0.642 that ratings and time control give on their own. A per-field check of the descriptions showed why: the model got even the "who is better" field wrong, although that field is written in the prompt.
+
+Gemma's tokenizer pads on the **left**. OpenTSLM's `pad_and_apply_batch` tokenizes the text segments of a batch with padding and then keeps the **first** n positions of each one, which assumes right padding. Every segment shorter than the longest in its batch, which is every series label and the question, was replaced by padding. The model was trained on the first sentence of the prompt and three unlabelled series.
+
+The fix is one line in `load_model` (`model.tokenizer.padding_side = "right"`) plus an assert that fails if it ever regresses. After it, the same recipe went from 0.623 to 0.741. The first run's results are kept in `results/tslm-clocks+engine-before-padding-fix.json`.
+
+## Live
+
+The watcher has run the model on real Lichess games in progress, with Stockfish judging each call three moves later. So far that is 221 judged positions and 3 calls, 1 of them a hit: far too few to say anything about live accuracy. The web page shows the running count, separately for each model and threshold, and it carries across restarts.
 
 ## Run it
 
@@ -71,7 +114,7 @@ git clone -b feature/lichess-clock-blunder https://github.com/SudeepGowda55/Time
 
 uv run pytest                              # 44 tests, no model or network needed
 uv run python -m mouseslip.baselines        # the table above
-scripts/train_all.sh                       # both models; about 4.5 hours each on an M1
+scripts/train_all.sh                       # about 4.5 hours per model on an M1, then a 45-minute test run
 uv run python -m mouseslip.tslm explain     # a few test windows with the model's own words
 uv run python -m mouseslip.live             # live watcher and web page on http://127.0.0.1:8765
 uv run python scripts/demo.py              # the same calls in a terminal
