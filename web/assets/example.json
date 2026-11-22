@@ -134,7 +134,7 @@
   -7.03
  ],
  "prompt": "Rated Lichess game, time control 180+2 (seconds + increment), White rated 1652, Black rated 1647. The series give White's clock and Black's clock in seconds and the engine evaluation in pawns from White's view, one value per ply, for the plies before move 18. White is to move. Will White blunder within their next three moves, that is, make a move that loses at least 0.3 winning chances on Lichess's -1 to +1 scale? Answer yes or no.",
- "rationale": "White is to move with 3:05 left against 2:01. Over the last 5 moves White spent 2.2 seconds per move on average, enough for about 84 more moves at that pace. The evaluation is +0.1 pawns from White's side, and it swung 1.4 pawns over the last ten plies. White does blunder within the next three moves. Answer: yes",
+ "rationale": "White has enough time, is ahead on the clock, at a steady pace. Board: White is about level, evaluation steady. Blunders: White 0, Black 0. Answer: yes",
  "drops": [
   {
    "ply": 35,
