@@ -6,6 +6,8 @@ A mouse slip is chess slang for a blunder made by a slip of the hand: you meant 
 
 Mouse Slip is a time-series language model that follows a chess game the way a spectator with no view of the board would. It reads three lines, White's clock, Black's clock and the engine's evaluation bar, then says whether the player to move is about to blunder and why. A live watcher runs it on real Lichess games in progress, and Stockfish keeps score.
 
+**Demo, 2:36, narrated:** [docs/mouseslip-demo.mp4](docs/mouseslip-demo.mp4), recorded from the live page while the watcher followed real games.
+
 Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team Matcrypt (Sudeep and Manvith).
 
 > **Result in one line.** Fine-tuned on 48,055 real game windows, the model reaches a test AUC of 0.741 writing its own description first, and 0.763 when handed the computed one. That is well above what the clocks and ratings alone give (0.650), and below a gradient-boosting baseline on the same three lines (0.785). Every number below is from a real run on held-out games.
@@ -97,16 +99,16 @@ The fix is one line in `load_model` (`model.tokenizer.padding_side = "right"`) p
 
 ## Live
 
-The watcher ran the fine-tuned model on real Lichess games in progress on 21 and 22 November 2026, with Stockfish judging each call three moves later. It calls a blunder when its score reaches the top tenth of its test scores (0.293).
+The watcher ran the fine-tuned model on real Lichess games in progress on 21 to 23 November 2026, with Stockfish judging each call three moves later. It calls a blunder when its score reaches the top tenth of its test scores (0.293). Snapshot at 03:00 IST on 23 November:
 
 | | Count |
 |---|---|
-| Positions judged | 1,632 |
-| Followed by a blunder within three moves | 339 (20.8%) |
-| Calls made | 19 (11 rapid, 7 blitz, 1 bullet) |
-| Calls that were right | **9 of 19 (47%)** |
+| Positions judged | 1,891 |
+| Followed by a blunder within three moves | 400 (21.2%) |
+| Calls made | 23 (11 rapid, 8 blitz, 4 bullet) |
+| Calls that were right | **11 of 23 (48%)** |
 
-When it called a blunder, it was right 2.3 times as often as the base rate. With only 19 calls the 95% interval for that hit rate is wide, 27% to 68%, but even its low end is above the 20.8% base rate. The web page shows the running count, separately for each model and threshold, and it carries across restarts.
+When it called a blunder, it was right 2.3 times as often as the base rate. With only 23 calls the 95% interval for that hit rate is wide, 29% to 67%, but even its low end is above the 21.2% base rate. The web page shows the running count, separately for each model and threshold, and it carries across restarts.
 
 ## Run it
 
