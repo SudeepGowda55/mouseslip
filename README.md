@@ -97,7 +97,16 @@ The fix is one line in `load_model` (`model.tokenizer.padding_side = "right"`) p
 
 ## Live
 
-The watcher has run the model on real Lichess games in progress, with Stockfish judging each call three moves later. So far that is 221 judged positions and 3 calls, 1 of them a hit: far too few to say anything about live accuracy. The web page shows the running count, separately for each model and threshold, and it carries across restarts.
+The watcher ran the fine-tuned model on real Lichess games in progress on 21 and 22 November 2026, with Stockfish judging each call three moves later. It calls a blunder when its score reaches the top tenth of its test scores (0.293).
+
+| | Count |
+|---|---|
+| Positions judged | 1,632 |
+| Followed by a blunder within three moves | 339 (20.8%) |
+| Calls made | 19 (11 rapid, 7 blitz, 1 bullet) |
+| Calls that were right | **9 of 19 (47%)** |
+
+When it called a blunder, it was right 2.3 times as often as the base rate. With only 19 calls the 95% interval for that hit rate is wide, 27% to 68%, but even its low end is above the 20.8% base rate. The web page shows the running count, separately for each model and threshold, and it carries across restarts.
 
 ## Run it
 
