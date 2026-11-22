@@ -16,7 +16,7 @@
 * { box-sizing: border-box; }
 html { background: var(--felt); -webkit-text-size-adjust: 100%; overflow-x: clip; }
 main { overflow-x: clip; } /* slips and stamps slam in at an angle; nothing may widen the page (clip, unlike hidden, keeps sticky working) */
-body { margin: 0; color: var(--ivory); font: 400 17px/1.5 var(--text); overflow-x: hidden; }
+body { margin: 0; color: var(--ivory); font: 400 17px/1.5 var(--text); overflow-x: clip; } /* hidden would make body a scroll container and unpin the story */
 body::before { /* felt nap; fixed pseudo-element, never background-attachment */
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
   background: radial-gradient(90% 60% at 50% 0%, rgba(255, 255, 255, .07), transparent 70%),
