@@ -8,7 +8,9 @@ Mouse Slip is a time-series language model that follows a chess game the way a s
 
 **Try it in your browser:** https://mouseslip.vercel.app (replays a real live session; the Run it page has the install steps)
 
-**Demo, 2:36, narrated:** [docs/mouseslip-demo.mp4](docs/mouseslip-demo.mp4), recorded from the live page while the watcher followed real games.
+**Demo, 2:36, narrated**, recorded from the live page while the watcher followed real games:
+
+https://github.com/user-attachments/assets/7fa4763c-8103-49e8-8468-bd01dab1607f
 
 Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team Matcrypt (Sudeep and Manvith).
 
