@@ -400,7 +400,7 @@ function headlines(view) {
 }
 
 /* ───────── views, changed by slamming a stamped slip onto the table ───────── */
-const VIEWS = { watch: ["#/", "Watch"], score: ["#/score", "Scoreboard"], how: ["#/how", "How it works"] };
+const VIEWS = { watch: ["#/", "Watch"], score: ["#/score", "Scoreboard"], how: ["#/how", "How it works"], run: ["#/run", "Run it"] };
 const fromHash = () => Object.keys(VIEWS).find(v => VIEWS[v][0] === location.hash) || "watch";
 function show(v) {
   S.view = document.body.dataset.view = v;
@@ -456,6 +456,36 @@ document.addEventListener("pointerdown", ev => {
 
 /* ───────── go ───────── */
 show(fromHash());
-tote(); refresh(); loadResults(); loadExample();
-new EventSource("/api/events").onmessage = m => onEvent(JSON.parse(m.data));
+tote(); loadExample(); start();
+async function start() {
+  const live = await fetch("/api/health").then(r => r.ok && r.headers.get("content-type")?.includes("json")).catch(() => false);
+  if (!live) return replay(); // a static host: play back a recorded session instead
+  refresh(); loadResults();
+  new EventSource("/api/events").onmessage = m => onEvent(JSON.parse(m.data));
+}
+
+/* ───────── replay: a real session recorded with scripts/record.py, for hosts with no watcher ───────── */
+async function replay() {
+  let R;
+  try { R = await (await fetch("replay/recording.json")).json(); } catch { S.online = false; tote(); drawHero(); return; }
+  const day = new Date(R.recorded_at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  const note = $("#replayNote"); note.hidden = false;
+  note.innerHTML = `Replay of a real live session, recorded ${esc(day)}. <a href="#/run" data-go="run">Run it yourself</a> for live games.`;
+  S.online = true; S.results = R.results; offline(); applyState(R.state);
+  const prune = () => { // the live server drops finished games; here, keep the three most recent
+    const ended = [...S.games.values()].filter(g => g.status !== "started" && !g.open_calls?.length);
+    for (const g of ended.slice(0, -3)) { S.games.delete(g.id); document.getElementById("g-" + g.id)?.remove(); }
+  };
+  const ev = R.events, first = ev.findIndex(e => e.type === "call");
+  let i = 0;
+  for (; i < first - 40; i++) onEvent({ ...ev[i], t: Date.now() / 1000 }); // skip to shortly before the first call
+  prune();
+  const step = () => {
+    if (i >= ev.length) { note.innerHTML = `Replay finished: a real session recorded ${esc(day)}. <a href="">Play again</a> or <a href="#/run" data-go="run">run it yourself</a>.`; return; }
+    onEvent({ ...ev[i], t: Date.now() / 1000 }); prune();
+    const gap = i + 1 < ev.length ? ev[i + 1].t - ev[i].t : 0; i++;
+    setTimeout(step, Math.min(gap * 1000 / 3, 1500)); // three times real speed, long quiet stretches cut short
+  };
+  step();
+}
 document.fonts?.ready.then(redraw);
