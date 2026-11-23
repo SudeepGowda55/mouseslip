@@ -123,13 +123,16 @@ git clone -b feature/lichess-clock-blunder https://github.com/SudeepGowda55/Time
 (cd TimeNet && uv sync --all-extras && uv pip install zstandard \
   && uv run timenet-build build lichess/clock-blunder --no-isolation)
 
-uv run pytest                              # 44 tests, no model or network needed
-uv run python -m mouseslip.baselines        # the table above
-scripts/train_all.sh                       # about 4.5 hours per model on an M1, then a 45-minute test run
-uv run python -m mouseslip.tslm explain     # a few test windows with the model's own words
-uv run python -m mouseslip.live             # live watcher and web page on http://127.0.0.1:8765
-uv run python scripts/demo.py              # the same calls in a terminal
+uv run mouseslip fetch-model    # the trained TSLM from the release (24 MB, checksum checked)
+uv run mouseslip live           # live watcher and web page on http://127.0.0.1:8765
+uv run mouseslip demo           # the same calls in a terminal, while `live` runs
+uv run mouseslip explain        # a few test windows with the model's own words
+uv run mouseslip baselines      # the table above
+uv run pytest                   # 46 tests, no model or network needed
+scripts/train_all.sh            # retrain instead of downloading: about 4.5 hours per model on an M1
 ```
+
+The TSLM loads Gemma-3-270M from Hugging Face, so accept its licence and run `huggingface-cli login` once. Without the trained TSLM, `live` makes its calls with the gradient-boosting baseline (shipped in `models/`).
 
 `curl localhost:8765/api/state` returns everything the page shows, and `/api/results` the test results.
 
