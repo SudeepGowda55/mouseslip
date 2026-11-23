@@ -6,6 +6,8 @@ A mouse slip is chess slang for a blunder made by a slip of the hand: you meant 
 
 Mouse Slip is a time-series language model that follows a chess game the way a spectator with no view of the board would. It reads three lines, White's clock, Black's clock and the engine's evaluation bar, then says whether the player to move is about to blunder and why. A live watcher runs it on real Lichess games in progress, and Stockfish keeps score.
 
+**Try it in your browser:** https://mouseslip.vercel.app (replays a real live session; the Run it page has the install steps)
+
 **Demo, 2:36, narrated:** [docs/mouseslip-demo.mp4](docs/mouseslip-demo.mp4), recorded from the live page while the watcher followed real games.
 
 Built for the [TimeNet Online Hackathon](https://challenge.timenet.ai/) by team Matcrypt (Sudeep and Manvith).
@@ -132,7 +134,7 @@ uv run pytest                   # 46 tests, no model or network needed
 scripts/train_all.sh            # retrain instead of downloading: about 4.5 hours per model on an M1
 ```
 
-The TSLM loads Gemma-3-270M from Hugging Face, so accept its licence and run `huggingface-cli login` once. Without the trained TSLM, `live` makes its calls with the gradient-boosting baseline (shipped in `models/`).
+The TSLM loads Gemma-3-270M from Hugging Face, so accept its licence and run `uv run hf auth login` once. Without the trained TSLM, `live` makes its calls with the gradient-boosting baseline (shipped in `models/`).
 
 `curl localhost:8765/api/state` returns everything the page shows, and `/api/results` the test results.
 
